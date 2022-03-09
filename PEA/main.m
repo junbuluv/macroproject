@@ -37,6 +37,10 @@ uss = ss_val(4);
 % save steady state
 steady_state = struct("css",css,"kss",kss,"nss",nss,"uss",uss);
 
+
+
+
+
 %% Quadrature nodes
 node_number = 5;
 epsi_number = 2;
@@ -46,29 +50,24 @@ quad = struct("n_nodes",n_nodes,"epsi_nodes",epsi_nodes,"weight_nodes",weight_no
 sigmaz = 0.0013;
 rhoz = 0.95;
 
-[mean_REE, max_REE, mean_RBC, max_RBC, mean_RMUL, max_RMUL, coef] = fitting(sigmaz,rhoz,T,param,steady_state,quad);
 
+%% PEA fitting get coefficients for n(t)
+coef = fitting(sigmaz,rhoz,T,param,steady_state,quad);
+
+%% compute residual
+N_burnout = 500;
+[mean_REE, max_REE, mean_RBC, max_RBC, mean_RMUL, max_RMUL] = residual(sigmaz,rhoz,coef,T,N_burnout,param,steady_state,quad)
 
 
 
 %% fminbnd (fixed persistence)
-%options_fminbnd = optimset('Display','iter','MaxFunEvals',1000,'TolFun',1e-5,'MaxIter',50);
-%fun2 = @(x) PEA1(x, 0.75 ,T,param,steady_state,quad);
-%[val, fval, exitflag, output] = fminbnd(fun2, 0.0001,0.1,options_fminbnd)
-
-
-%[mean_REE, max_REE, mean_RBC, max_RBC, mean_RMUL, max_RMUL, coef] = PEA1(val,0.75,T,param,steady_state,quad);
-
-
-%% fminsearch - work in progress
-
-%fun = @(x) PEA(x,T,param,steady_state,quad);
-%options = optimset('Display','iter','MaxFunEvals',1000,'TolFun',1e-5,'MaxIter',5);
-%[val, fval, exitflag, output] = fminsearch(fun,[0.0077,0.95],options)
+options_fminbnd = optimset('Display','iter','MaxFunEvals',1000,'TolFun',1e-10,'MaxIter',5000);
+fun2 = @(x) residual(x, 0.95 ,coef,T,N_burnout,param ,steady_state,quad);
+[val, fval, exitflag, output] = fminbnd(fun2, 0.0000001,0.5,options_fminbnd)
 
 
 %% simulation
-sigmaz = 0.0013;
+sigmaz = val;
 rhoz = 0.95;
 N = 1172; % simulation length
 Z = 5000; % repetition length
