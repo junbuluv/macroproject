@@ -67,7 +67,7 @@ fun2 = @(x) residual(x, 0.95 ,coef,T,N_burnout,param ,steady_state,quad);
 
 
 %% simulation
-sigmaz = val;
+sigmaz = 0.0012;
 rhoz = 0.95;
 N = 1172; % simulation length
 Z = 5000; % repetition length
@@ -81,12 +81,20 @@ n_sim = zeros(N - Burn,Z);
 u_sim = zeros(N - Burn,Z);
 y_sim = zeros(N - Burn,Z);
 w_sim = zeros(N - Burn,Z);
-
+i_sim = zeros(N - Burn,Z);
 for t = 1:Z
-[c_sim(:,t),k_sim(:,t),n_sim(:,t),u_sim(:,t), y_sim(:,t), w_sim(:,t)] = simulation(sigmaz, rhoz, coef , N, Burn, param, steady_state);
+[c_sim(:,t),k_sim(:,t),n_sim(:,t),u_sim(:,t), y_sim(:,t), w_sim(:,t), i_sim(:,t)] = simulation(sigmaz, rhoz, coef , N, Burn, param, steady_state);
 end
 
 
+
+
+corr_yc = mean(abs(diag(corr(y_sim,c_sim))));
+corr_yn = mean(abs(diag(corr(y_sim,n_sim))));
+corr_yi = mean(abs(diag(corr(y_sim,i_sim))));
+corr_yw = mean(abs(diag(corr(y_sim,w_sim))));
+corr_yk = mean(abs(diag(corr(y_sim,k_sim(1:end-1,:)))));
+corr_apl = mean(abs(diag(corr(y_sim./n_sim,n_sim))));
 
 
 t= (1:1:N-Burn);

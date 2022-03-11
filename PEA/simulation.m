@@ -1,4 +1,4 @@
-function [c, kp, n, u, y, w]= simulation(sigma_z, rho_z, coef , T, N_burnout, param, steady_state)
+function [c, kp, n, u, y, w,i]= simulation(sigma_z, rho_z, coef , T, N_burnout, param, steady_state)
 %% parameter setup
 alpha = param.alpha;
 kss = steady_state.kss;
@@ -29,7 +29,7 @@ n = zeros(T,1); % n(t)
 u = zeros(T,1); % u(t)
 y = zeros(T,1); % y(t)
 w = zeros(T,1); % w(t)
-
+i = zeros(T,1);
 
 for t = 1:T
     % Compute the time series
@@ -45,11 +45,14 @@ for t = 1:T
     y(t)= theta(t) * kp(t)^(alpha)*n(t)^(1-alpha)*u(t)^(alpha);
     %calculate marginal product of labor
     w(t)= (1-alpha) * theta(t) * kp(t)^(alpha) * n(t)^(-alpha)*u(t)^(alpha);
+    %calculate investment
+    i(t) = y(t) - c(t);
+    
 
 end
 
 
-
+i = i(N_burnout+1:end,:);
 n = n(N_burnout+1:end,:);
 u = u(N_burnout+1:end,:);
 kp = kp(N_burnout+1:end,:);
