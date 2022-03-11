@@ -89,12 +89,12 @@ end
 
 
 
-corr_yc = mean(abs(diag(corr(y_sim,c_sim))));
-corr_yn = mean(abs(diag(corr(y_sim,n_sim))));
-corr_yi = mean(abs(diag(corr(y_sim,i_sim))));
-corr_yw = mean(abs(diag(corr(y_sim,w_sim))));
-corr_yk = mean(abs(diag(corr(y_sim,k_sim(1:end-1,:)))));
-corr_apl = mean(abs(diag(corr(y_sim./n_sim,n_sim))));
+corr_yc = mean((diag(corr(y_sim,c_sim))));
+corr_yn = mean((diag(corr(y_sim,n_sim))));
+corr_yi = mean((diag(corr(y_sim,i_sim))));
+corr_yw = mean((diag(corr(y_sim,w_sim))));
+corr_yk = mean((diag(corr(y_sim,k_sim(1:end-1,:)))));
+corr_apl = mean((diag(corr(y_sim./n_sim,n_sim))));
 
 
 t= (1:1:N-Burn);
