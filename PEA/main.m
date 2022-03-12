@@ -49,10 +49,16 @@ weight = diag(ones(epsi_number,1));
 quad = struct("n_nodes",n_nodes,"epsi_nodes",epsi_nodes,"weight_nodes",weight_nodes);
 sigmaz = 0.0013;
 rhoz = 0.95;
-
-
+sim_length = 72;
 %% PEA fitting get coefficients for n(t)
 coef = fitting(sigmaz,rhoz,T,param,steady_state,quad);
+
+%%  PEA benchmark_uilization with no shock
+coef_benchmark = benchmark_util(T,param,steady_state,node_number,sim_length);
+
+%% PEA benchmark_no utilization 
+coef_no_u = benchmark_no_u(T,param,steady_state,node_number,sim_length);
+
 
 %% compute residual
 N_burnout = 500;
@@ -91,45 +97,45 @@ end
 
 corr_yc = mean((diag(corr(y_sim,c_sim))));
 corr_yn = mean((diag(corr(y_sim,n_sim))));
-corr_yi = mean((diag(corr(y_sim,i_sim))));
 corr_yw = mean((diag(corr(y_sim,w_sim))));
 corr_yk = mean((diag(corr(y_sim,k_sim(1:end-1,:)))));
-corr_apl = mean((diag(corr(y_sim./n_sim,n_sim))));
-
-
+corr_yu = mean((diag(corr(y_sim,u_sim))));
+corr_yi = mean((diag(corr(y_sim,i_sim))));
 t= (1:1:N-Burn);
 t_k= (1:1:N-Burn+1);
 gx_t = param.gx.^(t)';
 gx_t_k = param.gx.^(t_k)';
 
 
-k_sim = k_sim .* gx_t_k;
-c_sim = c_sim .* gx_t;
-y_sim = y_sim .* gx_t;
-i_sim = y_sim - c_sim;
-w_sim = w_sim .* gx_t;
+k_sim_gx = k_sim .* gx_t_k;
+c_sim_gx = c_sim .* gx_t;
+y_sim_gx = y_sim .* gx_t;
+i_sim_gx = y_sim_gx - c_sim_gx;
+w_sim_gx = w_sim .* gx_t;
 
 %% calculate ratio  
 % capital to output
-pk = k_sim(1:end-1,:) ./ y_sim;
+pk = k_sim_gx(1:end-1,:) ./ y_sim_gx;
 % consumption to output
-pc = c_sim ./ y_sim;
+pc = c_sim_gx ./ y_sim_gx;
 % investment to output
-pi = i_sim ./ y_sim;
+pi = i_sim_gx ./ y_sim_gx;
 
 % calculate average of the ratio
 pk_ss = mean(mean(pk));
 pc_ss = mean(mean(pc));
 pi_ss = mean(mean(pi));
-
+std_pk = std(mean(pk));
+std_pc = std(mean(pc));
+std_pi = std(mean(pi));
 %% compute the logarithm of the series
-ln_c = log(c_sim);
-ln_k = log(k_sim);
+ln_c = log(c_sim_gx);
+ln_k = log(k_sim_gx);
 ln_n = log(n_sim);
 ln_u = log(u_sim);
-ln_y = log(y_sim);
-ln_i = log(i_sim);
-ln_w = log(w_sim);
+ln_y = log(y_sim_gx);
+ln_i = log(i_sim_gx);
+ln_w = log(w_sim_gx);
 
 % Hodrick Prescott filter
 t= (1:1:Z);
@@ -149,20 +155,59 @@ t= (1:1:Z);
 
 
 
-sd_c(:,t) = sqrt(var(c_c(:,t)));
-sd_k(:,t) = sqrt(var(k_c(:,t)));
-sd_n(:,t) = sqrt(var(n_c(:,t)));
-sd_u(:,t) = sqrt(var(u_c(:,t)));
-sd_i(:,t) = sqrt(var(i_c(:,t)));
-sd_y(:,t) = sqrt(var(y_c(:,t)));
-sd_w(:,t) = sqrt(var(w_c(:,t)));
+sd_c = mean(sqrt(var(c_c(:,t))));
+sd_k = mean(sqrt(var(k_c(:,t))));
+sd_n = mean(sqrt(var(n_c(:,t))));
+sd_u = mean(sqrt(var(u_c(:,t))));
+sd_i = mean(sqrt(var(i_c(:,t))));
+sd_y = mean(sqrt(var(y_c(:,t))));
+sd_w = mean(sqrt(var(w_c(:,t))));
 
-
+std_sdc = std(sqrt(var(c_c(:,t))));
+std_sdk = std(sqrt(var(k_c(:,t))));
+std_sdn = std(sqrt(var(n_c(:,t))));
+std_sdu = std(sqrt(var(u_c(:,t))));
+std_sdi = std(sqrt(var(i_c(:,t))));
+std_sdy = std(sqrt(var(y_c(:,t))));
+std_sdw = std(sqrt(var(w_c(:,t))));
 % compute correlation of each variable with output
+%truncate one period of kprime
+k_c = k_c(2:end,:);
+corr_yc_gx = mean(diag(corr(y_c(:,t), c_c(:,t))));
+corr_yn_gx = mean(diag(corr(y_c(:,t), n_c(:,t))));
+corr_yk_gx = mean(diag(corr(y_c(:,t), k_c(:,t))));
+corr_yi_gx = mean(diag(corr(y_c(:,t), i_c(:,t))));
+corr_yw_gx = mean(diag(corr(y_c(:,t), w_c(:,t))));
+corr_yu_gx = mean(diag(corr(y_c(:,t), u_c(:,t))));
 
-corr_yc(:,t) = corr(y_c(:,t), c_c(:,t));
-corr_yn(:,t) = corr(y_c(:,t), n_c(:,t));
+int_corr_yc = [corr_yc_gx - 2*std(diag(corr(y_c(:,t), c_c(:,t)))),corr_yc_gx + 2*std(diag(corr(y_c(:,t), c_c(:,t))))];
+int_corr_yn = [corr_yn_gx - 2*std(diag(corr(y_c(:,t), n_c(:,t)))),corr_yn_gx + 2*std(diag(corr(y_c(:,t), n_c(:,t))))];
+int_corr_yk = [corr_yk_gx - 2*std(diag(corr(y_c(:,t), k_c(:,t)))),corr_yk_gx + 2*std(diag(corr(y_c(:,t), k_c(:,t))))];
+int_corr_yi = [corr_yi_gx - 2*std(diag(corr(y_c(:,t), i_c(:,t)))),corr_yi_gx + 2*std(diag(corr(y_c(:,t), i_c(:,t))))];
+int_corr_yw = [corr_yw_gx - 2*std(diag(corr(y_c(:,t), w_c(:,t)))),corr_yw_gx + 2*std(diag(corr(y_c(:,t), w_c(:,t))))];
+int_corr_yu = [corr_yu_gx - 2*std(diag(corr(y_c(:,t), u_c(:,t)))),corr_yu_gx + 2*std(diag(corr(y_c(:,t), u_c(:,t))))];
 
 
+% compute interval for series
 
+
+int_c =[mean(mean(c_sim))-2*std(mean(c_sim)),mean(mean(c_sim))+2*std(mean(c_sim))];
+int_n =[mean(mean(n_sim))-2*std(mean(n_sim)),mean(mean(n_sim))+2*std(mean(n_sim))];
+int_k =[mean(mean(k_sim))-2*std(mean(k_sim)),mean(mean(k_sim))+2*std(mean(k_sim))];
+int_i =[mean(mean(i_sim))-2*std(mean(i_sim)),mean(mean(i_sim))+2*std(mean(i_sim))];
+int_y =[mean(mean(y_sim))-2*std(mean(y_sim)),mean(mean(y_sim))+2*std(mean(y_sim))];
+int_w =[mean(mean(w_sim))-2*std(mean(w_sim)),mean(mean(w_sim))+2*std(mean(w_sim))];
+int_u =[mean(mean(u_sim))-2*std(mean(u_sim)),mean(mean(u_sim))+2*std(mean(u_sim))];
+
+
+Model = [pk_ss,pi_ss,mean(mean(n_sim)),sd_c,sd_n,sd_k,sd_i,sd_y,sd_w,sd_u,corr_yc_gx,corr_yn_gx,corr_yk_gx,corr_yi_gx,corr_yu_gx,corr_yw_gx]';
+Model_std = [std_pk, std_pi, std(mean(n_sim)), std_sdc, std_sdn, std_sdk, std_sdi, std_sdy, std_sdw, std_sdu, std(diag(corr(y_c(:,t), c_c(:,t)))), std(diag(corr(y_c(:,t), n_c(:,t))))...
+    std(diag(corr(y_c(:,t), k_c(:,t)))), std(diag(corr(y_c(:,t), i_c(:,t)))), std(diag(corr(y_c(:,t), w_c(:,t)))), std(diag(corr(y_c(:,t), u_c(:,t))))]';
+US_data = [10,0.2133,1/3,0.0085,0.0138,0.0070,0.0426,0.0117,0.0102,0,0.8581,0.8333,-0.21,0.9124,0,0.3483]';
+Mean_data = [mean(mean(c_sim)),mean(mean(n_sim)), mean(mean(u_sim)), mean(mean(k_sim)), mean(mean(y_sim)), mean(mean(i_sim)), mean(mean(w_sim))]';
+Interval = [int_c; int_n; int_u; int_k; int_y; int_i; int_w]';
+Interval_high = Interval(2,:)';
+Interval_low = Interval(1,:)';
+Table1 = table(Model,US_data);
+Table2 = table(Mean_data,Interval_high,Interval_low);
 
