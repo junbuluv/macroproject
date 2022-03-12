@@ -1,4 +1,4 @@
-function coef = fitting(sigma_z, rho_z , T, param, steady_state, quad)
+function [mean_REE,coef] = fitting(sigma_z, rho_z , T, N_burnout, param, steady_state, quad)
 
 
 %% parameter setup
@@ -92,6 +92,9 @@ kprime = repmat(kp(2:end),1,n_nodes);
 n_p = (1- (beta_s/gx .* exp(coef(1) + coef(2).* kprime +  coef(3) .* theta_p + coef(4).* z_p)).^(-1/mu));
 %u(t+1) - FOC
 u_p = (alpha .* theta_p .* kprime.^(alpha-1) .* n_p.^(1-alpha) ./ (z_p.* dss)).^(1/(phi-alpha));
+%c(t+1) - FOC
+c_p = ((B.*(1-n_p).^(-mu) ./ ((1-alpha)*theta_p.*(u_p.*kprime).^(alpha).*n_p.^(-alpha))).^(-1/gamma));
+
 % Expectation part
 e = (1-n_p).^(-mu) .* (theta.* (u.* k).^(alpha).* n.^(-alpha)) ./ (theta_p.*(u_p.*kprime).^(alpha).*n_p.^(-alpha)) .*...
     ((1- (z_p.*dss/phi .* u_p.^(phi))) + alpha .* theta_p .* u_p.^(alpha) .* kprime.^(alpha-1) .* n_p.^(1-alpha)) ;
@@ -102,7 +105,7 @@ zeta = nlinfit(X,e,'object',coef);
 dif = norm(coef - zeta);
 
 if rem(iteration,100) == 0
-    dif
+    dif;
 end
 if dif > criter
     coef = update*zeta + (1-update)*coef;
@@ -112,6 +115,14 @@ end
 iteration = iteration+1;
 
 end
+
+
+
+REE =  ((param.beta_s .* c_p.^(-param.gamma) .* (1- (param.dss.* z_p)) + param.alpha .* theta_p .* ...
+    kprime.^(param.alpha-1) .* n_p.^(1-param.alpha)) ./ (param.gx .* c.^(-param.gamma)))*weight_nodes  - 1;
+
+mean_REE = mean(log10(abs(REE)));
+
 
 
 
