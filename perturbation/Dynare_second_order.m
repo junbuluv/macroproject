@@ -22,7 +22,7 @@ rhot = 0.85; % production shock persistence
 dss = 1-gx + (1- c2y) / k2y; % steady state depreciation rate (u = 1)
 beta_s = gx / ((1-dss) + alpha * k2y^(-1));
 phi1 = gx/beta_s - (1-dss); % capital utilization parameter
-phi2 = 2; % capital utilization adjustment parameter
+phi2 = 20; % capital utilization adjustment parameter
 B = (1-alpha) * c2y^(-gamma) * k2y^((alpha*(1-gamma))/(1-alpha)) * nss^(-gamma) * (1-nss)^(mu); % leisure utility parameter
 beta = beta_s / gx^(1-gamma);
 
