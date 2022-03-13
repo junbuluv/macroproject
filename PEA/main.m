@@ -15,7 +15,7 @@ mu = 5; % leisure risk aversion
 gx = 1.0029; % Labor augmenting rate
 sigmat = 0.016; % production shock standard deviation of disturbance
 rhot = 0.95; % production shock persistence
-uss = 1; % utilization rate in steady state
+uss = 1.0; % utilization rate in steady state
 phi = 1.81; % capital utilization parameter
 dss = alpha * k2y^(-1) / uss^(phi); % steady state depreciation rate (u = 1)
 beta_s = gx / ((1- dss/phi * uss^(phi)) + alpha * k2y^(-1));
@@ -50,19 +50,20 @@ quad = struct("n_nodes",n_nodes,"epsi_nodes",epsi_nodes,"weight_nodes",weight_no
 sigmaz = 0.0013;
 rhoz = 0.95;
 sim_length = 72;
+sim_num = 5000;
 %% PEA fitting get coefficients for n(t)
 coef = fitting(sigmaz,rhoz,T,param,steady_state,quad);
 
 %%  PEA benchmark_uilization with no shock
-coef_benchmark = benchmark_util(T,param,steady_state,node_number,sim_length);
+[residual_bench_no_z, table1_no_z, table2_no_z] = benchmark_util(T,param,steady_state,node_number,sim_length, sim_num);
 
 %% PEA benchmark_no utilization 
-coef_no_u = benchmark_no_u(T,param,steady_state,node_number,sim_length);
+[residual_bench_no_u, table1_no_u, table2_no_u] = benchmark_no_u(T,param,steady_state,node_number,sim_length,sim_num);
 
 
 %% compute residual
 N_burnout = 500;
-[mean_REE, max_REE, mean_RBC, max_RBC, mean_RMUL, max_RMUL] = residual(sigmaz,rhoz,coef,T,N_burnout,param,steady_state,quad)
+[mean_REE, max_REE, mean_RBC, max_RBC, mean_RMUL, max_RMUL] = residual(sigmaz,rhoz,coef,T,N_burnout,param,steady_state,quad);
 
 
 
@@ -95,12 +96,6 @@ end
 
 
 
-corr_yc = mean((diag(corr(y_sim,c_sim))));
-corr_yn = mean((diag(corr(y_sim,n_sim))));
-corr_yw = mean((diag(corr(y_sim,w_sim))));
-corr_yk = mean((diag(corr(y_sim,k_sim(1:end-1,:)))));
-corr_yu = mean((diag(corr(y_sim,u_sim))));
-corr_yi = mean((diag(corr(y_sim,i_sim))));
 t= (1:1:N-Burn);
 t_k= (1:1:N-Burn+1);
 gx_t = param.gx.^(t)';
@@ -208,6 +203,49 @@ Mean_data = [mean(mean(c_sim)),mean(mean(n_sim)), mean(mean(u_sim)), mean(mean(k
 Interval = [int_c; int_n; int_u; int_k; int_y; int_i; int_w]';
 Interval_high = Interval(2,:)';
 Interval_low = Interval(1,:)';
-Table1 = table(Model,US_data);
+
+Interval_model_up = Model+2*[std_pk, std_pi, std(mean(n_sim)), std_sdc, std_sdn, std_sdk, std_sdi, std_sdy, std_sdw, std_sdu, std(diag(corr(y_c(:,t), c_c(:,t)))), std(diag(corr(y_c(:,t), n_c(:,t))))...
+    std(diag(corr(y_c(:,t), k_c(:,t)))), std(diag(corr(y_c(:,t), i_c(:,t)))), std(diag(corr(y_c(:,t), w_c(:,t)))), std(diag(corr(y_c(:,t), u_c(:,t))))]';
+
+Interval_model_low = Model-2*[std_pk, std_pi, std(mean(n_sim)), std_sdc, std_sdn, std_sdk, std_sdi, std_sdy, std_sdw, std_sdu, std(diag(corr(y_c(:,t), c_c(:,t)))), std(diag(corr(y_c(:,t), n_c(:,t))))...
+    std(diag(corr(y_c(:,t), k_c(:,t)))), std(diag(corr(y_c(:,t), i_c(:,t)))), std(diag(corr(y_c(:,t), w_c(:,t)))), std(diag(corr(y_c(:,t), u_c(:,t))))]';
+
+
+Table1 = table(US_data,Model,Model_std,Interval_model_up, Interval_model_low);
 Table2 = table(Mean_data,Interval_high,Interval_low);
+
+
+
+
+
+%% draw policy function
+kg=linspace(0,1.1*kss,1000)';
+ng= 1-(beta_s/gx*exp(coef(1)+coef(2)*kg + coef(3)  + coef(4))).^(-1/mu);
+
+u_pol = (alpha  * kg.^(alpha-1) .* ng.^(1-alpha)/dss).^ (1/(phi-alpha));
+c_pol = (B.*(1-ng).^(-mu) .* (1./((1-alpha).*(u_pol.*kg).^(alpha).*ng.^(-alpha)))).^(-1/gamma);
+k_pol = (1/gx).*((1- (dss/phi .* u_pol.^(phi))).*kg + (u_pol.*kg).^(alpha).*ng.^(1-alpha) - c_pol);
+
+subplot(4,1,1)
+n_policy = plot(kg,1-(beta_s/gx*exp(coef(1)+coef(2)*kg + coef(3)  + coef(4))).^(-1/mu));
+xlabel("k")
+ylabel("n")
+title("Labor")
+subplot(4,1,2)
+c_policy = plot(kg,c_pol);
+xlabel("k")
+ylabel("c")
+title("Consumption")
+subplot(4,1,3)
+u_policy = plot(kg,u_pol);
+xlabel("k")
+ylabel("u")
+title("Capital-Utilization")
+subplot(4,1,4)
+k_policy = plot(kg,k_pol);
+xlabel("k")
+ylabel("kprime")
+title("Kprime")
+ 
+
 
