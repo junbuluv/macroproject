@@ -129,7 +129,7 @@ c_p = ((B.*(1-n_p).^(-mu) ./ ((1-alpha)*theta_p.*(kprime).^(alpha).*n_p.^(-alpha
 
 %% compute residuals 
 uniform_weight = ones(n_nodes,1)./n_nodes;
-RBC = ((1- param.dss) .* k + theta .* k.^(param.alpha) .* n_sim.^(1-param.alpha)) ./ (c_sim + param.gx .* kprime) * uniform_weight  -  1;
+RBC = (((1- param.dss) .* k + theta .* k.^(param.alpha) .* n_sim.^(1-param.alpha)) ./ (c_sim + param.gx .* kprime)) * uniform_weight  -  1;
 REE =  (param.beta_s .* c_p.^(-param.gamma) .* ((1- param.dss) + param.alpha .* theta_p .* kprime.^(param.alpha-1) .* n_p.^(1-param.alpha)) ./ (param.gx .* c_sim.^(-param.gamma)))*weight_nodes  - 1;
 RMUL = ((c_sim.^(-param.gamma) .* (1-param.alpha).*theta.*(k).^(param.alpha).*n_sim.^(-param.alpha))./ (param.B.*(1-n_sim).^(-param.mu))) * uniform_weight  -1;
 

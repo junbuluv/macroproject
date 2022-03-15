@@ -47,8 +47,8 @@ epsi_number = 2;
 weight = diag(ones(epsi_number,1));
 [n_nodes,epsi_nodes,weight_nodes] = GH_Quadrature(node_number,epsi_number,weight') ;
 quad = struct("n_nodes",n_nodes,"epsi_nodes",epsi_nodes,"weight_nodes",weight_nodes);
-sigmaz = 0.0013;
-rhoz = 0.95;
+sigmaz = 0.013;
+rhoz = 0.9;
 sim_length = 72;
 sim_num = 5000;
 %% PEA fitting get coefficients for n(t)
@@ -57,26 +57,25 @@ coef = fitting(sigmaz,rhoz,T,param,steady_state,quad);
 %%  PEA benchmark_uilization with no shock
 [residual_bench_no_z, table1_no_z, table2_no_z] = benchmark_util(T,param,steady_state,node_number,sim_length, sim_num);
 
+
 %% PEA benchmark_no utilization 
 [residual_bench_no_u, table1_no_u, table2_no_u] = benchmark_no_u(T,param,steady_state,node_number,sim_length,sim_num);
 
 
 %% compute residual
 N_burnout = 500;
-[mean_REE, max_REE, mean_RBC, max_RBC, mean_RMUL, max_RMUL] = residual(sigmaz,rhoz,coef,T,N_burnout,param,steady_state,quad);
+[mean_REE, max_REE, mean_RBC, max_RBC, mean_RMUL, max_RMUL, max_RUTIL, mean_RUTIL] = residual(sigmaz,rhoz,coef,T,N_burnout,param,steady_state,quad);
 
 
 
 %% fminbnd (fixed persistence)
-options_fminbnd = optimset('Display','iter','MaxFunEvals',1000,'TolFun',1e-10,'MaxIter',5000);
-fun2 = @(x) sigma_search(x, 0.95,T,N_burnout,param ,steady_state,quad);
-[val, fval, exitflag, output] = fminbnd(fun2, 0.0000001,0.5,options_fminbnd)
+%options_fminbnd = optimset('Display','iter','MaxFunEvals',1000,'TolFun',1e-10,'MaxIter',5000);
+%fun2 = @(x) sigma_search(x, 0.95,T,N_burnout,param ,steady_state,quad);
+%[val, fval, exitflag, output] = fminbnd(fun2, 0.0000001,0.5,options_fminbnd)
 
 
 %% simulation
-sigmaz = 0.0012;
-rhoz = 0.95;
-N = 1172; % simulation length
+N = 172; % simulation length
 Z = 5000; % repetition length
 Burn = 100;
 
@@ -219,12 +218,11 @@ Table2 = table(Mean_data,Interval_high,Interval_low);
 
 
 %% draw policy function
-kg=linspace(0,1.1*kss,1000)';
-ng= 1-(beta_s/gx*exp(coef(1)+coef(2)*kg + coef(3)  + coef(4))).^(-1/mu);
-
-u_pol = (alpha  * kg.^(alpha-1) .* ng.^(1-alpha)/dss).^ (1/(phi-alpha));
-c_pol = (B.*(1-ng).^(-mu) .* (1./((1-alpha).*(u_pol.*kg).^(alpha).*ng.^(-alpha)))).^(-1/gamma);
-k_pol = (1/gx).*((1- (dss/phi .* u_pol.^(phi))).*kg + (u_pol.*kg).^(alpha).*ng.^(1-alpha) - c_pol);
+kg=linspace(0,1.2*kss,1000)';
+n_pol= 1-(beta_s/gx*exp(coef(1)+coef(2)*kg + coef(3)  + coef(4))).^(-1/mu);
+u_pol = (alpha  * kg.^(alpha-1) .* n_pol.^(1-alpha)/dss).^ (1/(phi-alpha));
+c_pol = (B.*(1-n_pol).^(-mu) .* (1./((1-alpha).*(u_pol.*kg).^(alpha).*n_pol.^(-alpha)))).^(-1/gamma);
+k_pol = (1/gx).*((1- (dss/phi .* u_pol.^(phi))).*kg + (u_pol.*kg).^(alpha).*n_pol.^(1-alpha) - c_pol);
 
 subplot(4,1,1)
 n_policy = plot(kg,1-(beta_s/gx*exp(coef(1)+coef(2)*kg + coef(3)  + coef(4))).^(-1/mu));
@@ -248,4 +246,25 @@ ylabel("kprime")
 title("Kprime")
  
 
+
+subplot(2,2,1)
+plot(n_sim(1:10000,1))
+xlabel("Time")
+ylabel("n")
+title("Labor")
+subplot(2,2,2)
+plot(c_sim(1:10000,1))
+xlabel("Time")
+ylabel("c")
+title("Consumption")
+subplot(2,2,3)
+plot(u_sim(1:10000,1))
+xlabel("Time")
+ylabel("u")
+title("Capital-Utilization")
+subplot(2,2,4)
+plot(k_sim(1:10000,1))
+xlabel("Time")
+ylabel("k")
+title("Capital")
 

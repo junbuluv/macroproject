@@ -44,7 +44,7 @@ for t = 1:T
     %calculate output
     y(t)= theta(t) * kp(t)^(alpha)*n(t)^(1-alpha)*u(t)^(alpha);
     %calculate marginal product of labor
-    w(t)= (1-alpha) * theta(t) * (u(t)* kp(t))^(alpha) * n(t)^(-alpha)*u(t)^(alpha);
+    w(t)= (1-alpha) * theta(t) * (u(t)* kp(t))^(alpha) * n(t)^(-alpha);
     %calculate investment
     i(t) = y(t) - c(t);
     

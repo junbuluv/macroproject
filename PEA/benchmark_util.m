@@ -131,15 +131,17 @@ k = repmat(k_sim(1:end-1),1,n_nodes);
 kprime = repmat(k_sim(2:end),1,n_nodes);
 %n(t+1) - parametrization
 n_p = (1- (beta_s/gx .* exp(coef(1) + coef(2).* kprime +  coef(3) .* theta_p)).^(-1/mu));
+%u(t+1)
+u_p = (alpha .* theta_p .* kprime.^(alpha-1) .* n_p.^(1-alpha) ./ (dss)).^(1/(phi-alpha));
 %c(t+1) - FOC
 c_p = ((B.*(1-n_p).^(-mu) ./ ((1-alpha)*theta_p.*(kprime).^(alpha).*n_p.^(-alpha))).^(-1/gamma));
 
 
 %% compute residuals 
 uniform_weight = ones(n_nodes,1)./n_nodes;
-RBC = ((1- param.dss) .* k + theta .* k.^(param.alpha) .* n_sim.^(1-param.alpha)) ./ (c_sim + param.gx .* kprime) * uniform_weight  -  1;
-REE =  (param.beta_s .* c_p.^(-param.gamma) .* ((1- param.dss) + param.alpha .* theta_p .* kprime.^(param.alpha-1) .* n_p.^(1-param.alpha)) ./ (param.gx .* c_sim.^(-param.gamma)))*weight_nodes  - 1;
-RMUL = ((c_sim.^(-param.gamma) .* (1-param.alpha).*theta.*(k).^(param.alpha).*n_sim.^(-param.alpha))./ (param.B.*(1-n_sim).^(-param.mu))) * uniform_weight  -1;
+RBC = ((1- param.dss) .* k + theta .* u_sim.^param.alpha .* k.^(param.alpha) .* n_sim.^(1-param.alpha)) ./ (c_sim + param.gx .* kprime) * uniform_weight  -  1;
+REE =  (param.beta_s .* c_p.^(-param.gamma) .* ((1- (param.dss/param.phi .* u_p.^param.phi)) + param.alpha .* theta_p .* u_p.^(param.alpha) .* kprime.^(param.alpha-1) .* n_p.^(1-param.alpha)) ./ (param.gx .* c_sim.^(-param.gamma)))*weight_nodes  - 1;
+RMUL = ((c_sim.^(-param.gamma) .* (1-param.alpha).*theta.*(u_sim.*k).^(param.alpha).*n_sim.^(-param.alpha))./ (param.B.*(1-n_sim).^(-param.mu))) * uniform_weight  -1;
 
 
 max_RBC = max(log10(abs(RBC)));

@@ -1,4 +1,4 @@
-function [mean_REE, max_REE, mean_RBC, max_RBC, mean_RMUL, max_RMUL] = residual(sigma_z, rho_z, coef , T, N_burnout, param, steady_state, quad)
+function [mean_REE, max_REE, mean_RBC, max_RBC, mean_RMUL, max_RMUL, max_RUTIL, mean_RUTIL] = residual(sigma_z, rho_z, coef , T, N_burnout, param, steady_state, quad)
 %% parameter setup
 alpha = param.alpha;
 kss = steady_state.kss;
@@ -84,6 +84,7 @@ REE =  ((param.beta_s .* c_p.^(-param.gamma) .* (1- (param.dss/param.phi .* z_p 
 
 RMUL = ((c.^(-param.gamma) .* (1-param.alpha).*theta.*(u.*k).^(param.alpha).*n.^(-param.alpha))./ (param.B.*(1-n).^(-param.mu))) * uniform_weight  -1;
 
+RUTIL = ((z.*param.dss .* u.^(param.phi-1)) ./ (param.alpha .*theta.* k.^(param.alpha-1).*u.^(param.alpha-1).*n.^(1-param.alpha))) * uniform_weight -1;
 
 max_RBC = max(log10(abs(RBC)));
 mean_RBC = mean(log10(abs(RBC)));
@@ -94,5 +95,6 @@ mean_REE = mean(log10(abs(REE)));
 max_RMUL = max(log10(abs(RMUL)));
 mean_RMUL = mean(log10(abs(RMUL)));
 
-
+max_RUTIL = max(log10(abs(RUTIL)));
+mean_RUTIL = mean(log10(abs(RUTIL)));
 
