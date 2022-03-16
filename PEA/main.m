@@ -69,9 +69,9 @@ N_burnout = 500;
 
 
 %% fminbnd (fixed persistence)
-%options_fminbnd = optimset('Display','iter','MaxFunEvals',1000,'TolFun',1e-10,'MaxIter',5000);
-%fun2 = @(x) sigma_search(x, 0.95,T,N_burnout,param ,steady_state,quad);
-%[val, fval, exitflag, output] = fminbnd(fun2, 0.0000001,0.5,options_fminbnd)
+options_fminbnd = optimset('Display','iter','MaxFunEvals',1000,'TolFun',1e-10,'MaxIter',5000);
+fun2 = @(x) sigma_search(x, 0.9,T,N_burnout,param ,steady_state,quad);
+[val, fval, exitflag, output] = fminbnd(fun2, 0.00001,0.5,options_fminbnd)
 
 
 %% simulation

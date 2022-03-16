@@ -16,13 +16,13 @@ gx = 1.0029; % Labor augmenting rate
 sigmat = 0.016; % production shock standard deviation of disturbance
 rhot = 0.95; % production shock persistence
 uss = 1.0; % utilization rate in steady state
-phi = 1.8; % capital utilization parameter
+phi = 1.81; % capital utilization parameter
 dss = alpha * k2y^(-1) / uss^(phi); % steady state depreciation rate (u = 1)
 beta_s = gx / ((1- dss/phi * uss^(phi)) + alpha * k2y^(-1));
 B = c2y^(-gamma) * (1-alpha) * k2y^(alpha*(1-gamma)/(1-alpha)) * uss^(alpha*(1-gamma)/(1-alpha)) * nss^(-gamma) * (1-nss)^(mu) ; % leisure utility parameter
 beta = beta_s / gx^(1-gamma);
-rhoz = 0.9;
-sigmaz = 0.013;
+rhoz = 0.78;
+sigmaz = 0.1098;
 
 %% parameter structure
 param = struct("beta", beta, "alpha" ,alpha, "mu", mu, "dss",dss, "gx",gx, "phi",phi, "gamma",gamma, "B", B, "rhoz",rhoz, "rhot",rhot,"sigmat",sigmat,"sigmaz",sigmaz);
