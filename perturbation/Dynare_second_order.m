@@ -21,7 +21,7 @@ dss = alpha * k2y^(-1) / uss^(phi); % steady state depreciation rate (u = 1)
 beta_s = gx / ((1- dss/phi * uss^(phi)) + alpha * k2y^(-1));
 B = c2y^(-gamma) * (1-alpha) * k2y^(alpha*(1-gamma)/(1-alpha)) * uss^(alpha*(1-gamma)/(1-alpha)) * nss^(-gamma) * (1-nss)^(mu) ; % leisure utility parameter
 beta = beta_s / gx^(1-gamma);
-rhoz = 0.78;
+rhoz = 0.9;
 sigmaz = 0.1098;
 
 %% parameter structure
@@ -86,22 +86,26 @@ idx_k_u=1;
 idx_z_u=2;
 idx_theta_u=3;
 
+idx = struct("idx_c_v",idx_c_v,"idx_n_v",idx_n_v,"idx_u_v",idx_u_v,"idx_k_u",idx_k_u,"idx_z_u",idx_z_u,"idx_theta_u",idx_theta_u);
 
 % Construct residuals
 sim_len=length(U(1,:));
 E=zeros(sim_len,N_nodes_total);
 
-%To avoid complex number issue apply weight first then
-%calculate residual
 
 %%working in progress
 %%%%%%%
 
-for j=2:sim_len
+for j=1:sim_len
     for m=1:N_nodes_total
-       E(j,m)=((VE(idx_c_v,j,m).^(-param.gamma).*(((1.0- param.dss/param.phi .* exp(UE(idx_z_u,j,m)) .* (VE(idx_u_v,j,m).^param.phi)) +  ...
-           param.alpha * exp(UE(idx_theta_u,j,m)).*(U(idx_k_u,j)).^(param.alpha-1) .* VE(idx_u_v,j,m)^(alpha) .* VE(idx_n_v,j,m))^(1-alpha))));
-       
+        if VE(idx_n_v,j,m) < 0
+            VE(idx_n_v,j,m) = -VE(idx_n_v,j,m);
+       E(j,m)=VE(idx_c_v,j,m).^(-param.gamma).* (1.0- param.dss/param.phi .* exp(UE(idx_z_u,j,m)) .* (VE(idx_u_v,j,m).^param.phi)) +  ...
+           (param.alpha * exp(UE(idx_theta_u,j,m)).*U(idx_k_u,j).^(param.alpha-1) .* VE(idx_u_v,j,m)^(alpha) .* -(VE(idx_n_v,j,m))^(1-alpha) );
+        else
+            E(j,m)=VE(idx_c_v,j,m).^(-param.gamma).* (1.0- param.dss/param.phi .* exp(UE(idx_z_u,j,m)) .* (VE(idx_u_v,j,m).^param.phi)) +  ...
+           (param.alpha * exp(UE(idx_theta_u,j,m)).*U(idx_k_u,j).^(param.alpha-1) .* VE(idx_u_v,j,m)^(alpha) .* (VE(idx_n_v,j,m))^(1-alpha) );
+        end
     end
 end
 

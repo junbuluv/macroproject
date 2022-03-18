@@ -20,7 +20,7 @@ phi = 1.81; % capital utilization parameter
 dss = alpha * k2y^(-1) / uss^(phi); % steady state depreciation rate (u = 1)
 beta_s = gx / ((1- dss/phi * uss^(phi)) + alpha * k2y^(-1));
 B = c2y^(-gamma) * (1-alpha) * k2y^(alpha*(1-gamma)/(1-alpha)) * uss^(alpha*(1-gamma)/(1-alpha)) * nss^(-gamma) * (1-nss)^(mu) ; % leisure utility parameter
-
+ 
 %% steady state value calculation
 param = struct("beta_s", beta_s, "alpha" ,alpha, "mu", mu, "dss",dss, "gx",gx, "phi",phi , "gamma",gamma,...
     "B", B, "rhot",rhot, "sigmat",sigmat);
@@ -104,7 +104,7 @@ gx_t_k = param.gx.^(t_k)';
 k_sim_gx = k_sim .* gx_t_k;
 c_sim_gx = c_sim .* gx_t;
 y_sim_gx = y_sim .* gx_t;
-i_sim_gx = y_sim_gx - c_sim_gx;
+i_sim_gx = abs(y_sim_gx - c_sim_gx);
 w_sim_gx = w_sim .* gx_t;
 
 %% calculate ratio  
@@ -217,12 +217,40 @@ Table2 = table(Mean_data,Interval_high,Interval_low);
 
 
 
+
 %% draw policy function
-kg=linspace(0,1.2*kss,1000)';
-n_pol= 1-(beta_s/gx*exp(coef(1)+coef(2)*kg + coef(3)  + coef(4))).^(-1/mu);
-u_pol = (alpha  * kg.^(alpha-1) .* n_pol.^(1-alpha)/dss).^ (1/(phi-alpha));
-c_pol = (B.*(1-n_pol).^(-mu) .* (1./((1-alpha).*(u_pol.*kg).^(alpha).*n_pol.^(-alpha)))).^(-1/gamma);
-k_pol = (1/gx).*((1- (dss/phi .* u_pol.^(phi))).*kg + (u_pol.*kg).^(alpha).*n_pol.^(1-alpha) - c_pol);
+kg=linspace(0,1.2*kss,20)';
+shockt = Shocks(50,0.012,rhot);
+shockz = Shocks(20,sigmaz,rhoz);
+[X,Y] = meshgrid(kg,shockt);
+n_pol= 1-(beta_s/gx*exp(coef(1)+coef(2)*X + coef(3)*Y  + coef(4))).^(-1/mu);
+u_pol = (alpha  * X.^(alpha-1) .* n_pol.^(1-alpha)/dss).^ (1/(phi-alpha));
+c_pol = (B.*(1-n_pol).^(-mu) .* (1./((1-alpha).*(u_pol.*X).^(alpha).*n_pol.^(-alpha)))).^(-1/gamma);
+k_pol = (1/gx).*((1- (dss/phi .* u_pol.^(phi))).*X + (u_pol.*X).^(alpha).*n_pol.^(1-alpha) - c_pol);
+
+
+surf(X,Y,n_pol)
+xlabel('$k$','Interpreter','latex')
+ylabel('$\theta$','Interpreter','latex')
+zlabel('$n$','Interpreter','latex')
+title("Labor Policy Plot")
+
+
+surf(X,Y,u_pol)
+xlabel('$k$','Interpreter','latex')
+ylabel('$\theta$','Interpreter','latex')
+zlabel('$u$','Interpreter','latex')
+title("Utilization Policy Plot")
+surf(X,Y,c_pol)
+xlabel('$k$','Interpreter','latex')
+ylabel('$\theta$','Interpreter','latex')
+zlabel('$c$','Interpreter','latex')
+title("Consumption Policy Plot")
+surf(X,Y,k_pol)
+xlabel('$k$','Interpreter','latex')
+ylabel('$\theta$','Interpreter','latex')
+zlabel('$kprime$','Interpreter','latex')
+title("Capital Policy Plot")
 
 subplot(4,1,1)
 n_policy = plot(kg,1-(beta_s/gx*exp(coef(1)+coef(2)*kg + coef(3)  + coef(4))).^(-1/mu));

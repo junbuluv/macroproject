@@ -52,4 +52,4 @@ var epsit; stderr sigmat;
 var epsiz; stderr sigmaz;
 end;
 
-stoch_simul(order=2, irf= 100, periods = 2000, drop = 200);
+stoch_simul(order=2, irf= 100, periods = 2000, drop = 200, hp_filter = 1600);
