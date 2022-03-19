@@ -48,7 +48,7 @@ weight = diag(ones(epsi_number,1));
 [n_nodes,epsi_nodes,weight_nodes] = GH_Quadrature(node_number,epsi_number,weight') ;
 quad = struct("n_nodes",n_nodes,"epsi_nodes",epsi_nodes,"weight_nodes",weight_nodes);
 sigmaz = 0.013;
-rhoz = 0.9;
+rhoz = 0.25;
 sim_length = 72;
 sim_num = 5000;
 %% PEA fitting get coefficients for n(t)
